@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from argparse import ArgumentParser
 from colorama import Fore, Back, Style
+from enum import Enum
 from keystone import *
 import ctypes, struct, sys
 
@@ -17,8 +18,14 @@ Y88b      / 888      e      888
 
 __GLOBAL_QMODE = False
 
+Egg = Enum('Egg', ['IsBadReadPtr', 'NtAccessCheck', 'NtDisplayString', 'SEH'])
+
+
 def display_banner():
     print(highlight(Fore.GREEN, __bn))
+
+def err_die(err):
+    print("%s %s" % (highlight(Fore.RED, '[ERROR]'), err))
 
 def highlight(color, text):
     return color + text + Style.RESET_ALL
@@ -38,16 +45,34 @@ def print_encoded_port(port_no):
     print("\n🧪 You entered: %s" % port_no)
     print("🧪 Result: 0x%s" % ''.join(port_hex))
 
+def print_egghunter(egghunter):
+    match egghunter:
+        case Egg.IsBadReadPtr.name:
+            print('isBadReadPtr')
+        case Egg.NtAccessCheck.name:
+            print('NtAccessCheck')
+        case Egg.NtDisplayString.name:
+            print('NtDisplayString')
+        case Egg.SEH.name:
+            print('SEH')
+
 if __name__ == '__main__':
     argp = ArgumentParser(prog='vial')
-    argp.add_argument('--quiet', '-q', action='store_true', help='do not display the startup banner')
+    argp.add_argument('--egghunter', action='store', type=str)
     argp.add_argument('--encode-ip', '--ip', action='store', type=str)
     argp.add_argument('--encode-port', '--port', action='store', type=str)
+    argp.add_argument('--quiet', '-q', action='store_true', help='do not display the startup banner')
     args = argp.parse_args()
 
     if not args.quiet:
         display_banner()
-    
+
+    if args.egghunter:
+        if Egg.__members__.__contains__(args.egghunter):
+            print_egghunter(args.egghunter)
+        else:
+            err_die('Invalid egg hunter specified. Options: IsBadReadPtr, NtAccessCheck, NtDisplayString, SEH')
+
     if args.encode_ip:
         print_encoded_ip(args.encode_ip)
 
