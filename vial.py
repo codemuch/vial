@@ -30,6 +30,14 @@ def print_encoded_ip(ip_addr):
     print("\n🧪 You entered: %s" % ip_addr)
     print("🧪 Result: 0x%s" % ''.join(li))
 
+def print_encoded_port(port_no):
+    port_dec = "{:>04}".format(hex(int(port_no)).split('x')[1])
+    port_hex = [port_dec[i:i+2] for i in range(0, len(port_dec), 2)]
+    port_hex.reverse()
+
+    print("\n🧪 You entered: %s" % port_no)
+    print("🧪 Result: 0x%s" % ''.join(port_hex))
+
 if __name__ == '__main__':
     argp = ArgumentParser(prog='vial')
     argp.add_argument('--quiet', '-q', action='store_true', help='do not display the startup banner')
@@ -42,3 +50,6 @@ if __name__ == '__main__':
     
     if args.encode_ip:
         print_encoded_ip(args.encode_ip)
+
+    if args.encode_port:
+        print_encoded_port(args.encode_port)
