@@ -19,7 +19,7 @@ Y88b      / 888      e      888
 __GLOBAL_QMODE = False
 
 Egg = Enum('Egg', ['IsBadReadPtr', 'NtAccessCheck', 'NtDisplayString', 'SEH'])
-
+Payload = Enum('Payload', ['Bind Download Execute Reverse'])
 
 def display_banner():
     print(highlight(Fore.GREEN, __bn))
@@ -34,7 +34,7 @@ def print_encoded_ip(ip_addr):
     li = ["{:>02}".format(hex(int(i)).split('x')[1]) for i in ip_addr.split('.')]
     li.reverse()
 
-    print("\n🧪 You entered: %s" % ip_addr)
+    print("\n🧪 Encoding IPv4 address: %s" % ip_addr)
     print("🧪 Result: 0x%s" % ''.join(li))
 
 def print_encoded_port(port_no):
@@ -42,34 +42,51 @@ def print_encoded_port(port_no):
     port_hex = [port_dec[i:i+2] for i in range(0, len(port_dec), 2)]
     port_hex.reverse()
 
-    print("\n🧪 You entered: %s" % port_no)
+    print("\n🧪 Encoding port: %s" % port_no)
     print("🧪 Result: 0x%s" % ''.join(port_hex))
 
-def print_egghunter(egghunter):
-    match egghunter:
-        case Egg.IsBadReadPtr.name:
-            print('isBadReadPtr')
-        case Egg.NtAccessCheck.name:
-            print('NtAccessCheck')
-        case Egg.NtDisplayString.name:
-            print('NtDisplayString')
-        case Egg.SEH.name:
-            print('SEH')
+def generate_egghunter(egghunter):
+    if egghunter.lower() == Egg.IsBadReadPtr.name.lower():
+        eh_type = 'isBadReadPtr'
+    elif egghunter.lower() == Egg.NtAccessCheck.name.lower():
+        eh_type = 'NtAccessCheck'
+    elif egghunter.lower() == Egg.NtDisplayString.name.lower():
+        eh_type = 'NtDisplayString'
+    elif egghunter.lower() == Egg.SEH.name.lower():
+        eh_type = 'SEH'
+    else:
+        sys.exit(1) # This shouldn't ever happen
+    
+    print("🧪 Generating %s egghunter:" % eh_type)
+    code = ""
+    with open('lib/egghunter/%s' % egghunter.lower(), 'r') as file:
+        code = ''.join(file.readlines())
+    file.close()
+    ks = Ks(KS_ARCH_X86, KS_MODE_32)
+    encoding, count = ks.asm(code)
+    egghunter = ""
+    for dec in encoding:
+        egghunter += "\\x{0:02x}".format(int(dec)).rstrip("\n")
+
+    print("\"" + highlight(Fore.GREEN, egghunter) + "\"")
+    
 
 if __name__ == '__main__':
     argp = ArgumentParser(prog='vial')
+    argp.add_argument('--badchars', '-b', action='store', type=str)
     argp.add_argument('--egghunter', action='store', type=str)
     argp.add_argument('--encode-ip', '--ip', action='store', type=str)
-    argp.add_argument('--encode-port', '--port', action='store', type=str)
-    argp.add_argument('--quiet', '-q', action='store_true', help='do not display the startup banner')
+    argp.add_argument('--encode-port', '--p', action='store', type=str)
+    argp.add_argument('--no-warn', '--n')
+    argp.add_argument('--quiet', '--q', '-q', action='store_true', help='do not display the startup banner')
     args = argp.parse_args()
 
     if not args.quiet:
         display_banner()
 
     if args.egghunter:
-        if Egg.__members__.__contains__(args.egghunter):
-            print_egghunter(args.egghunter)
+        if args.egghunter.lower() in [m.lower() for m in Egg.__members__]:
+            generate_egghunter(args.egghunter)
         else:
             err_die('Invalid egg hunter specified. Options: IsBadReadPtr, NtAccessCheck, NtDisplayString, SEH')
 
