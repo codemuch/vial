@@ -23,10 +23,22 @@ def display_banner():
 def highlight(color, text):
     return color + text + Style.RESET_ALL
 
+def print_encoded_ip(ip_addr):
+    li = ["{:>02}".format(hex(int(i)).split('x')[1]) for i in ip_addr.split('.')]
+    li.reverse()
+
+    print("\n🧪 You entered: %s" % ip_addr)
+    print("🧪 Result: 0x%s" % ''.join(li))
+
 if __name__ == '__main__':
     argp = ArgumentParser(prog='vial')
     argp.add_argument('--quiet', '-q', action='store_true', help='do not display the startup banner')
+    argp.add_argument('--encode-ip', '--ip', action='store', type=str)
+    argp.add_argument('--encode-port', '--port', action='store', type=str)
     args = argp.parse_args()
 
     if not args.quiet:
         display_banner()
+    
+    if args.encode_ip:
+        print_encoded_ip(args.encode_ip)
