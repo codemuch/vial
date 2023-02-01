@@ -1,7 +1,7 @@
 loop_inc_page:
     or dx, 0x0fff       ;
 loop_inc_one:
-    inc edx             ;
+	inc edx             ;
 loop_check:
     push edx            ;
     mov eax, 0xfffffe3a ;

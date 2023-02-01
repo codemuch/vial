@@ -59,7 +59,7 @@ def generate_egghunter(egghunter):
     
     print("🧪 Generating %s egghunter:" % eh_type)
     code = ""
-    with open('vials/egghunter/%s' % egghunter.lower(), 'r') as file:
+    with open('vials/egghunter/%s.nasm' % egghunter.lower(), 'r') as file:
         code = ''.join(file.readlines())
     file.close()
     ks = Ks(KS_ARCH_X86, KS_MODE_32)
