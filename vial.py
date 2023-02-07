@@ -10,9 +10,9 @@ import ctypes, struct, sys
 __bn  ='''
 Y88b      / 888      e      888     
  Y88b    /  888     d8b     888     ViAL ---
-  Y88b  /   888    /Y88b    888     venomous injected artifact library
+  Y88b  /   888    /Y88b    888     pick your poison
    Y888/    888   /  Y88b   888     
-    Y8/     888  /____Y88b  888     m0rtal
+    Y8/     888  /____Y88b  888      
      Y      888 /      Y88b 888____
 '''
 
@@ -45,6 +45,12 @@ def print_encoded_port(port_no):
     print("\n🧪 Encoding port: %s" % port_no)
     print("🧪 Result: 0x%s" % ''.join(port_hex))
 
+def resolve_symbol(dll, symbol):
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.GetModuleHandleA(dll.encode(encoding='ascii'))
+    addr = kernel32.GetProcAddress(handle, symbol.encode(encoding='ascii'))
+    print("🧪 Result:" % hex(addr))
+    
 def generate_egghunter(egghunter):
     if egghunter.lower() == Egg.IsBadReadPtr.name.lower():
         eh_type = 'isBadReadPtr'
@@ -79,6 +85,7 @@ if __name__ == '__main__':
     argp.add_argument('--encode-port', '--p', action='store', type=str)
     argp.add_argument('--no-warn', '--n')
     argp.add_argument('--quiet', '--q', '-q', action='store_true', help='do not display the startup banner')
+    argp.add_argument('--resolve', '--r', action='store', help='resolve the address of a symbol for a given module')
     args = argp.parse_args()
 
     if not args.quiet:
