@@ -10,7 +10,7 @@ import ctypes, struct, sys
 __bn  ='''
 Y88b      / 888      e      888     
  Y88b    /  888     d8b     888     ViAL ---
-  Y88b  /   888    /Y88b    888     pick your poison
+  Y88b  /   888    /Y88b    888     venomous injected assembly library
    Y888/    888   /  Y88b   888     
     Y8/     888  /____Y88b  888      
      Y      888 /      Y88b 888____
