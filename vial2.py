@@ -32,10 +32,10 @@ def main(args):
 
         if len(tag) != 4:
             tag = DEFAULT_TAG
-            console.log("[red][!][/red] Tag must be four (4) characters!")
-            console.log(f"Using default tag {tag}")
+            console.print("[yellow][WARN][/yellow] Tag must be four (4) characters!")
+            console.print(f"[INFO] Using default tag {tag}")
 
-        console.log(f"Generating egghunter with tag {tag_to_hex(tag)} ({tag})")
+        console.print(f"[INFO] Generating egghunter with tag {tag_to_hex(tag)} ({tag})")
 
 if __name__ == '__main__':
 
