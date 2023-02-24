@@ -19,7 +19,6 @@ def tag_to_hex(s):
     if len(s) == 4:
         tag = s
     else:
-        console.error()
         tag = DEFAULT_TAG
     return f"0x{''.join([hex(ord(ch)).split('x')[1] for ch in tag][::-1])}"
 
@@ -42,14 +41,37 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description = "Creates a 32-bit Windows assembly payload"
     )
-    parser.add_argument(
+
+    exclusive_group = parser.add_mutually_exclusive_group()
+
+    exclusive_group.add_argument(
         '--egghunter',
-        help = "Generate a 32-bit SEH or NtAccess egghunter",
-        action = 'store_true'
+        help = "Generate a 32-bit Windows SEH or NtAccess egghunter",
+        action = 'store',
+        type = str,
+        nargs = 1,
     )
+    exclusive_group.add_argument(
+        '--payload',
+        help = "Generate a 32-bit Windows payload",
+        action = 'store',
+        type = str,
+        nargs = 1,
+    )
+    exclusive_group.add_argument(
+        '--list',
+        help = "List available payloads",
+        action = 'store_true',
+    )
+
     parser.add_argument(
         '--tag',
         help = f"Egghunter tag to use (default: {DEFAULT_TAG})"
     )
 
-    main(parser.parse_args())
+    if len(sys.argv) > 1:
+        args = parser.parse_args()
+        main(args)
+    else:
+        parser.print_help()
+        sys.exit()
