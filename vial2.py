@@ -5,6 +5,8 @@ import sys
 from keystone import *
 from rich.console import Console
 
+console = Console()
+
 BANNER = '''[green]
 Y88b      / 888      e      888     
  Y88b    /  888     d8b     888     ViAL ---
@@ -25,12 +27,12 @@ def tag_to_hex(s):
 def print_shellcode(code):
     ks = Ks(KS_ARCH_X86, KS_MODE_32)
     encoding, count = ks.asm(code)
-    print("Encoded %d instructions..." % count)
+    console.print("[INFO] Encoded %d instructions..." % count)
 
     shellcode = ""
     for dec in encoding: 
         shellcode += "\\x{0:02x}".format(int(dec)).rstrip("\n") 
-    print("buf = (\"" + shellcode + "\")")
+    console.print("[INFO] buf = (\"" + shellcode + "\")")
 
 def generate_egghunter_seh(tag):
     egg_hunter = f'''
@@ -77,19 +79,25 @@ def generate_egghunter_ntaccess(tag):
     pass
 
 def main(args):
-    console = Console()
     console.print(BANNER)
 
     if args.egghunter:
-        tag = args.tag 
+        tag = args.tag
+        op = args.egghunter[0]
 
         if len(tag) != 4:
             tag = DEFAULT_TAG
             console.print("[yellow][WARN][/yellow] Tag must be four (4) characters!")
             console.print(f"[INFO] Using default tag {tag}")
 
-        console.print(f"[INFO] Generating egghunter with tag {tag_to_hex(tag)} ({tag})")
-        generate_egghunter_seh(tag)
+        console.print(f"[INFO] Generating {op} egghunter with tag {tag_to_hex(tag)} ({tag})")
+
+        if (op.lower() == 'seh'):
+            generate_egghunter_seh(tag)
+        elif (op.lower() == 'ntaccess'):
+            generate_egghunter_ntaccess(tag)
+        else:
+            console.print(f"[WARN] No matching egghunter found for '{op}'!")
 
 if __name__ == '__main__':
 
@@ -98,7 +106,6 @@ if __name__ == '__main__':
     )
 
     exclusive_group = parser.add_mutually_exclusive_group()
-
     exclusive_group.add_argument(
         '--egghunter',
         help = "Generate a 32-bit Windows SEH or NtAccess egghunter",
