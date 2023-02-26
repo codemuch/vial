@@ -8,14 +8,14 @@ from lib.core import Payload
 
 console = Console()
 
-BANNER = '''[green]
+BANNER = '''[bright_green]
 Y88b      / 888      e      888     
  Y88b    /  888     d8b     888     ViAL ---
   Y88b  /   888    /Y88b    888     venomous injected assembly library
    Y888/    888   /  Y88b   888     
     Y8/     888  /____Y88b  888     
      Y      888 /      Y88b 888____
-[/green]'''
+[/bright_green]'''
 
 def print_shellcode(code):
     ks = Ks(KS_ARCH_X86, KS_MODE_32)
@@ -54,33 +54,35 @@ def main(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-        description = "Creates a 32-bit Windows assembly payload"
+        description = "creates a 32-bit Windows assembly payload"
     )
 
     exclusive_group = parser.add_mutually_exclusive_group()
     exclusive_group.add_argument(
         '--egghunter',
-        help = "Generate a 32-bit Windows SEH or NtAccessCheckAndAuditAlarm egghunter",
+        help = "generate a 32-bit Windows SEH or NtAccessCheckAndAuditAlarm egghunter",
         action = 'store',
         type = str,
         nargs = 1,
+        choices = ['seh', 'ntaccess']
     )
-    exclusive_group.add_argument(
+    parser.add_argument(
         '--payload',
-        help = "Generate a 32-bit Windows payload",
+        help = "generate a 32-bit Windows bind or reverse shell payload",
         action = 'store',
         type = str,
         nargs = 1,
+        choices = ['bind', 'reverse']
     )
     exclusive_group.add_argument(
         '--list',
-        help = "List available payloads",
+        help = "list available payloads",
         action = 'store_true',
     )
 
     parser.add_argument(
         '--tag',
-        help = f"Egghunter tag to use (default: {Payload.DEFAULT_TAG})",
+        help = f"specify egghunter tag to use (default: {Payload.DEFAULT_TAG})",
         action = 'store',
         type = str,
         default = Payload.DEFAULT_TAG
