@@ -110,14 +110,14 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--encode-ip',
-        help = f"encode an IPv4 address",
+        help = f"hex encode (little-endian) an IPv4 address",
         action = 'store',
         type = str,
     )
 
     parser.add_argument(
         '--encode-port',
-        help = f"encode a port number",
+        help = f"hex encode (little-endian) a port number",
         action = 'store',
         type = str,
     )
