@@ -159,5 +159,4 @@ cython_debug/
 #.idea/
 
 # misc
-**/*.swp
-**/*/*.swp
+*.swp
