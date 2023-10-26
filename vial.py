@@ -17,6 +17,21 @@ Y88b      / 888      e      888
      Y      888 /      Y88b 888____
 [/green1]'''
 
+def print_encoded_ip(ip_addr):
+    li = ["{:>02}".format(hex(int(i)).split('x')[1]) for i in ip_addr.split('.')]
+    li.reverse()
+
+    print("\n🧪 Encoding IPv4 address: %s" % ip_addr)
+    print("🧪 Result: 0x%s" % ''.join(li))
+
+def print_encoded_port(port_no):
+    port_dec = "{:>04}".format(hex(int(port_no)).split('x')[1])
+    port_hex = [port_dec[i:i+2] for i in range(0, len(port_dec), 2)]
+    port_hex.reverse()
+
+    print("\n🧪 Encoding port: %s" % port_no)
+    print("🧪 Result: 0x%s" % ''.join(port_hex))
+
 def print_shellcode(code):
     ks = Ks(KS_ARCH_X86, KS_MODE_32)
     encoding, count = ks.asm(code)
