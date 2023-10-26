@@ -5,7 +5,10 @@ from enum import Enum
 from keystone import *
 import ctypes, struct, sys
 
-# ViAL - m0rtal
+# ~ DO NOT RUN ~
+# This probably doesn't work and is just leftover from the rewrite.
+# Keeping it here for now in case there's anything in here I still need
+# to port over to vial.py.
 
 __bn  ='''
 Y88b      / 888      e      888     

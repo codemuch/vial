@@ -12,10 +12,10 @@ class Payload:
         #TODO: replace tag
         return Util.read_nasm(Payload.EGG_SEH_PAYLOAD_PATH)
 
-    def generate_payload_tcp():
+    def generate_payload_tcp_bind():
         pass
 
-    def generate_payload_reverse_tcp():
+    def generate_payload_tcp_reverse():
         pass
 
 class Util:
