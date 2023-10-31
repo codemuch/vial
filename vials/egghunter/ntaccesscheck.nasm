@@ -12,7 +12,7 @@ loop_check:
 loop_check_valid:
 	je loop_inc_page	;
 is_egg:
-    mov eax, 0x74303077		;
+    mov eax, {tag}		;
 	mov edi, edx		;
 	scasd			;
 	jnz loop_inc_one	;
