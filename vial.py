@@ -35,7 +35,7 @@ def print_shellcode(code):
     shellcode = ""
     for dec in encoding: 
         shellcode += "\\x{0:02x}".format(int(dec)).rstrip("\n") 
-    console.print(f"[INFO] Generated shellcode ({len(shellcode)} bytes):"
+    console.print(f"[INFO] Generated shellcode ({len(encoding)} bytes):"
                   "\nbuf = (\"" + shellcode + "\")")
 
 def main(args):
