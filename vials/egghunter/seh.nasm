@@ -28,7 +28,7 @@ get_seh_address:
     pop ecx;
     mov eax, [esp+ecx];
     mov cl, 0xb8;
-    add dword ptr ds:[eax+ecx], 0x6;
+    add dword ptr ds:[eax+ecx], 0x06;
     pop eax;
     add esp, 0x10;
     push eax;

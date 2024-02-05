@@ -27,7 +27,7 @@ class Util:
     def read_nasm(file_path):
         try:
             with open(file_path, 'r') as file:
-                lines = [line.rstrip('\n') for line in file]
+                lines = [line.rstrip('\n').split('#')[0] for line in file]
                 file_contents = ''.join(lines)
         except FileNotFoundError:
             print(f"The file '{file_path}' was not found.")
