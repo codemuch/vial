@@ -1,3 +1,6 @@
+RED = "\033[31m"
+RESET = "\033[0m"
+
 class Payload:
 
     DEFAULT_TAG = "w00t"
@@ -23,18 +26,45 @@ class Payload:
         pass
 
 class Util:
+
+    """
+        This should be able to read normal NASM files where comments start with ';'
+    """
     @staticmethod
-    def read_nasm(file_path):
+    def read_nasm(file_path: str) -> str:
         try:
             with open(file_path, 'r') as file:
-                lines = [line.rstrip('\n').split('#')[0] for line in file]
-                file_contents = ''.join(lines)
+                lines = [line.rstrip().split(';')[0] for line in file]
+                file_contents = ';'.join([l for l in lines if l != ''])
         except FileNotFoundError:
             print(f"The file '{file_path}' was not found.")
         except Exception as e:
             print(f"An error occurred: {e}")
         else:
             return file_contents
+
+
+    """
+        Dump the raw bytes (opcodes) highlighting the NULL bytes
+    """
+    @staticmethod
+    def dump_nasm_bytes(encoding: bytes):
+        sc_bytes = ""
+        ct = 0
+        for dec in encoding:
+            current = "\\x{0:02x}".format(int(dec)).rstrip("\n")
+            if int(dec) == 0x00:
+                current = f"{RED}{current}{RESET}"
+
+            if ct < 16:
+                sc_bytes += current
+            else:
+                sc_bytes += ("\"\n\"" + current)
+                ct = 0
+
+            ct += 1
+
+        print(f"[INFO] Dumping {len(encoding)} bytes: \nbuf = (\n\"" + sc_bytes + "\")")
 
     @staticmethod
     def tag_to_hex(tag):
